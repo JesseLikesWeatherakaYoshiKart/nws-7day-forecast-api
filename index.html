@@ -1,0 +1,199 @@
+
+<html>
+    <head>
+        <title>Jesse's Weather Station</title>
+    </head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" 
+        rel="stylesheet" 
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" 
+        crossorigin="anonymous"/>
+    <body>
+        <div>
+            <center><h1>NWS API - Forecast for Washington, District of Columbia</h1></center>
+        </div>
+        <br/>
+        <br/>
+        <div id="hourly" style="height: 300px">
+            <canvas id="hourly-chart"></canvas>
+        </div>
+        <div class="card-group">
+
+            <div class="card" id="period-0">
+                <img class="card-img-top" src="">
+                <div class="card-body">
+                    <center><h5 class="card-title"></h5></center>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">High <span class="high"></span></li>
+                    <li class="list-group-item">Low <span class="low"></span></li>
+                </ul>
+            </div>
+
+            <div class="card" id="period-1">
+                <img class="card-img-top" src="">
+                <div class="card-body">
+                    <center><h5 class="card-title"></h5></center>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">High <span class="high"></span></li>
+                    <li class="list-group-item">Low <span class="low"></span></li>
+                </ul>
+            </div>
+
+            <div class="card" id="period-2">
+                <img class="card-img-top" src="">
+                <div class="card-body">
+                    <center><h5 class="card-title"></h5></center>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">High <span class="high"></span></li>
+                    <li class="list-group-item">Low <span class="low"></span></li>
+                </ul>
+            </div>
+
+            <div class="card" id="period-3">
+                <img class="card-img-top" src="">
+                <div class="card-body">
+                    <center><h5 class="card-title"></h5></center>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">High <span class="high"></span></li>
+                    <li class="list-group-item">Low <span class="low"></span></li>
+                </ul>
+            </div>
+
+            <div class="card" id="period-4">
+                <img class="card-img-top" src="">
+                <div class="card-body">
+                    <center><h5 class="card-title"></h5></center>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">High <span class="high"></span></li>
+                    <li class="list-group-item">Low <span class="low"></span></li>
+                </ul>
+            </div>
+
+            <div class="card" id="period-5">
+                <img class="card-img-top" src="">
+                <div class="card-body">
+                    <center><h5 class="card-title"></h5></center>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">High <span class="high"></span></li>
+                    <li class="list-group-item">Low <span class="low"></span></li>
+                </ul>
+            </div>
+
+            <div class="card" id="period-6">
+                <img class="card-img-top" src="">
+                <div class="card-body">
+                    <center><h5 class="card-title"></h5></center>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">High <span class="high"></span></li>
+                    <li class="list-group-item">Low <span class="low"></span></li>
+                </ul>
+            </div>
+
+        </div>
+    </body>
+    <script src="app.js"></script>
+    <script
+        src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
+        integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI="
+        crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+
+        // Store the forcast globally for now, so that we can always access it
+        let forcast = null;
+        let chart = null;
+        const ctx = document.getElementById('hourly-chart').getContext('2d');
+
+        async function initialize() {
+
+            // Get the forcast by latitude and longitude
+            forcast = await new App().getForcast(38.898222, -77.047702;
+
+            // Iterate through 7 days, the first day being your current day
+            for (let idx = 0; idx < 7; idx++) {
+                
+                const period = forcast[idx];
+                if (period) {
+
+                    const dayElement = $(`#period-${idx}`);
+
+                    // Update the period with specific Day information
+                    initializePeriod(dayElement, period);
+                }
+            }
+
+            // Select the current day to show hourly chart
+            selectHourly({ data: { period: 0 }});
+        }
+
+        function initializePeriod(element, period) {
+
+            // For current day, get the current hour's icon.
+            // For other days, get the icon at 2:00 PM.
+            // TODO: Update to get icon for current hour of every day!
+            const icon = (period.hourly.length != 24) ?
+                period.hourly[0].icon :
+                period.hourly[14].icon;
+
+            element.find('.card-img-top').attr("src", icon);
+            element.find('.card-title').text(period.name);
+            element.find('.high').text(`${period.high}°${period.unit}`);
+            element.find('.low').text(`${period.low}°${period.unit}`);
+
+            element.find('.card-img-top').click({ period: period.period }, selectHourly);
+        }
+
+        function selectHourly(event) {
+
+            const data = {
+                labels: [],
+                datasets: [{
+                    label: 'Hourly Forcast',
+                    data: [],
+                    fill: false,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            };
+
+            const config = {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            };
+
+            const period = forcast[event.data.period];
+            for (let hourlyPeriod of period.hourly) {
+
+                const date = new Date(hourlyPeriod.startTime);
+
+                data.labels.push(date.getHours());
+                data.datasets[0].data.push(hourlyPeriod.temperature);
+            }
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            chart = new Chart(ctx, config);
+        }
+
+        // Initialize out weather app
+        initialize()
+            .catch(ex => {
+                // Any errors will be caught here
+                console.dir(ex);
+            });
+
+    </script>
+</html>
